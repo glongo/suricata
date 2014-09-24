@@ -397,6 +397,8 @@ typedef struct Packet_
 
     struct timeval ts;
 
+    enum {IDS, IPS} pkt_mode;
+
     union {
         /* nfq stuff */
 #ifdef HAVE_NFLOG
@@ -835,6 +837,8 @@ void PacketFreeOrRelease(Packet *p);
 int PacketCopyData(Packet *p, uint8_t *pktdata, int pktlen);
 int PacketSetData(Packet *p, uint8_t *pktdata, int pktlen);
 int PacketCopyDataOffset(Packet *p, int offset, uint8_t *data, int datalen);
+int PacketModeIsIPS(const Packet *p);
+int PacketModeIsIDS(const Packet *p);
 const char *PktSrcToString(enum PktSrcEnum pkt_src);
 
 DecodeThreadVars *DecodeThreadVarsAlloc(ThreadVars *);
