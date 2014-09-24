@@ -1243,7 +1243,7 @@ static int HandleSegmentStartsBeforeListSegment(ThreadVars *tv, TcpReassemblyThr
             StreamTcpSetEvent(p, STREAM_REASSEMBLY_OVERLAP_DIFFERENT_DATA);
         }
 
-        if (StreamTcpInlineMode()) {
+        if (StreamTcpInlineMode(p)) {
             if (StreamTcpInlineSegmentCompare(seg, list_seg) != 0) {
                 StreamTcpInlineSegmentReplacePacket(p, list_seg);
             }
@@ -1441,7 +1441,7 @@ static int HandleSegmentStartsAtSameListSegment(ThreadVars *tv, TcpReassemblyThr
             StreamTcpSetEvent(p, STREAM_REASSEMBLY_OVERLAP_DIFFERENT_DATA);
         }
 
-        if (StreamTcpInlineMode()) {
+        if (StreamTcpInlineMode(p)) {
             if (StreamTcpInlineSegmentCompare(list_seg, seg) != 0) {
                 StreamTcpInlineSegmentReplacePacket(p, list_seg);
             }
@@ -1648,7 +1648,7 @@ static int HandleSegmentStartsAfterListSegment(ThreadVars *tv, TcpReassemblyThre
             StreamTcpSetEvent(p, STREAM_REASSEMBLY_OVERLAP_DIFFERENT_DATA);
         }
 
-        if (StreamTcpInlineMode()) {
+        if (StreamTcpInlineMode(p)) {
             if (StreamTcpInlineSegmentCompare(list_seg, seg) != 0) {
                 StreamTcpInlineSegmentReplacePacket(p, list_seg);
             }
@@ -3506,7 +3506,7 @@ int StreamTcpReassembleHandleSegmentUpdateACK (ThreadVars *tv,
     SCLogDebug("stream->seg_list %p", stream->seg_list);
 
     int r = 0;
-    if (!(StreamTcpInlineMode())) {
+    if (!(StreamTcpInlineMode(p))) {
         if (StreamTcpReassembleAppLayer(tv, ra_ctx, ssn, stream, p) < 0)
             r = -1;
         if (StreamTcpReassembleRaw(ra_ctx, ssn, stream, p) < 0)
@@ -3556,7 +3556,7 @@ int StreamTcpReassembleHandleSegment(ThreadVars *tv, TcpReassemblyThreadCtx *ra_
 
     /* in stream inline mode even if we have no data we call the reassembly
      * functions to handle EOF */
-    if (StreamTcpInlineMode()) {
+    if (StreamTcpInlineMode(p)) {
         int r = 0;
         if (StreamTcpReassembleInlineAppLayer(tv, ra_ctx, ssn, stream, p) < 0)
             r = -1;
