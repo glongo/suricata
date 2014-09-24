@@ -280,7 +280,7 @@ static int LogDropLogNetFilter (ThreadVars *tv, const Packet *p, void *data)
  */
 static int LogDropCondition(ThreadVars *tv, const Packet *p)
 {
-    if (!EngineModeIsIPS()) {
+    if (!PacketModeIsIPS(p)) {
         SCLogDebug("engine is not running in inline mode, so returning");
         return FALSE;
     }
