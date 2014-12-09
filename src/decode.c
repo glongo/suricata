@@ -267,7 +267,7 @@ Packet *PacketTunnelPktSetup(ThreadVars *tv, DecodeThreadVars *dtv, Packet *pare
     p->ts.tv_sec = parent->ts.tv_sec;
     p->ts.tv_usec = parent->ts.tv_usec;
     p->datalink = DLT_RAW;
-    p->pkt_mode = parent->mode;
+    p->pkt_mode = parent->pkt_mode;
 
     /* set the root ptr to the lowest layer */
     if (parent->root != NULL)

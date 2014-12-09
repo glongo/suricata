@@ -347,6 +347,7 @@ typedef struct PktProfiling_ {
 /* forward declartion since Packet struct definition requires this */
 struct PacketQueue_;
 
+enum mode {AUTO, IDS, IPS};
 /* sizes of the members:
  * src: 17 bytes
  * dst: 17 bytes
@@ -397,7 +398,7 @@ typedef struct Packet_
 
     struct timeval ts;
 
-    enum {IDS, IPS} pkt_mode;
+    enum mode pkt_mode;
 
     union {
         /* nfq stuff */

@@ -117,7 +117,7 @@ static uint64_t ssn_pool_cnt = 0; /** counts ssns, protected by ssn_pool_mutex *
 SC_ATOMIC_DECLARE(uint64_t, st_memuse);
 
 /* stream engine running in "inline" mode. */
-enum {AUTO, IDS, IPS} stream_inline;
+enum mode stream_inline;
 
 void TmModuleStreamTcpRegister (void)
 {
