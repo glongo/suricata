@@ -392,7 +392,7 @@ void *ParsePfringConfig(const char *iface)
             SCLogInfo("PF_RING IPS mode activated %s->%s",
                     iface,
                     pfconf->out_interface);
-            pfconf->copy_mode = PFRING_COPY_MODE_TAP;
+            pfconf->copy_mode = PFRING_COPY_MODE_IPS;
         } else {
             SCLogInfo("Invalid mode (not in tap, ips)");
         }

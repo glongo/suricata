@@ -345,15 +345,18 @@ TmEcode PfringWritePacket(Packet *p)
     u_char *pkt_buffer = GET_PKT_DIRECT_DATA(p);
     u_int buffer_size = GET_PKT_DIRECT_MAX_SIZE(p);
 
+    SCLogInfo("copy_mode %d", p->pfring_v.copy_mode);
     if (p->pfring_v.copy_mode == PFRING_COPY_MODE_IPS) {
+        SCLogInfo("p->pfring_v.copy_mode == PFRING_COPY_MODE_IPS");
         if (PACKET_TEST_ACTION(p, ACTION_DROP)) {
             return TM_ECODE_OK;
         }
     }
-
-    r = pfring_send(p->pfring_v.peer->pd, (char *)pkt_buffer, buffer_size, p->pfring_v.copy_mode);
+    SCLogInfo("invio pacchetto");
+    r = pfring_send(p->pfring_v.peer->pd, (char *)pkt_buffer, buffer_size, 1);
+    SCLogInfo("r %d iface %s", r, p->pfring_v.peer->iface);
     if (r < 0) {
-        SCLogWarning(SC_ERR_SOCKET, "Sending packet failed");
+        SCLogWarning(SC_ERR_SOCKET, "Sending packet failed %s", strerror(errno));
         return TM_ECODE_FAILED;
     }
 
