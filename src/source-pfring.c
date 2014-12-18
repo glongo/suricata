@@ -210,15 +210,15 @@ void PfringPeerClean(PfringPeer *peer)
     SCFree(peer);
 }
 
-PfringPeersList peerslist;
+PfringPeersList pf_peerslist;
 
 TmEcode PfringPeersListInit()
 {
     SCEnter();
-    TAILQ_INIT(&peerslist.peers);
-    peerslist.peered = 0;
-    peerslist.cnt = 0;
-    peerslist.turn = 0;
+    TAILQ_INIT(&pf_peerslist.peers);
+    pf_peerslist.peered = 0;
+    pf_peerslist.cnt = 0;
+    pf_peerslist.turn = 0;
 
     return TM_ECODE_OK;
 }
@@ -231,7 +231,7 @@ TmEcode PfringPeersListCheck()
     int try = 0;
 
     while (try < PFRING_PEERS_MAX_TRY) {
-        if (peerslist.cnt != peerslist.peered) {
+        if (pf_peerslist.cnt != pf_peerslist.peered) {
             usleep(PFRING_PEERS_WAIT);
         } else {
             return TM_ECODE_OK;
@@ -255,15 +255,15 @@ TmEcode PfringPeersListAdd(PfringThreadVars *ptv)
     memset(peer, 0, sizeof(PfringPeer));
 
     strlcpy(peer->iface, ptv->interface, PFRING_IFACE_NAME_LENGTH);
-    peer->turn = peerslist.turn++;
+    peer->turn = pf_peerslist.turn++;
     peer->pd = ptv->pd;
     ptv->mpeer = peer;
-    TAILQ_INSERT_TAIL(&peerslist.peers, peer, next);
+    TAILQ_INSERT_TAIL(&pf_peerslist.peers, peer, next);
 
     if (ptv->copy_mode != PFRING_COPY_MODE_NONE) {
-        peerslist.cnt++;
+        pf_peerslist.cnt++;
 
-        TAILQ_FOREACH(pitem, &peerslist.peers, next) {
+        TAILQ_FOREACH(pitem, &pf_peerslist.peers, next) {
             if (pitem->peer) continue;
             if (strcmp(pitem->iface, ptv->out_iface)) continue;
             peer->peer = pitem;
@@ -278,7 +278,7 @@ TmEcode PfringPeersListAdd(PfringThreadVars *ptv)
                         ptv->out_iface, out_mtu,
                         (out_mtu > mtu) ? mtu : out_mtu);
             }
-            peerslist.peered += 2;
+            pf_peerslist.peered += 2;
             break;
         }
     }
@@ -289,10 +289,10 @@ TmEcode PfringPeersListAdd(PfringThreadVars *ptv)
 
 int PfringPeersListWaitTurn(PfringPeer *peer)
 {
-    if (peerslist.turn == 0)
+    if (pf_peerslist.turn == 0)
         return 0;
 
-    if (peer->turn == SC_ATOMIC_GET(peerslist.reached))
+    if (peer->turn == SC_ATOMIC_GET(pf_peerslist.reached))
         return 0;
 
     return 1;
@@ -300,13 +300,13 @@ int PfringPeersListWaitTurn(PfringPeer *peer)
 
 void PfringPeersListReachedInc()
 {
-    if (peerslist.turn == 0)
+    if (pf_peerslist.turn == 0)
         return;
 
-    if (SC_ATOMIC_ADD(peerslist.reached, 1) == peerslist.turn) {
+    if (SC_ATOMIC_ADD(pf_peerslist.reached, 1) == pf_peerslist.turn) {
         SCLogInfo("All PF_RING capture threads are running.");
-        (void)SC_ATOMIC_SET(peerslist.reached, 0);
-        peerslist.turn = 0;
+        (void)SC_ATOMIC_SET(pf_peerslist.reached, 0);
+        pf_peerslist.turn = 0;
     }
 }
 
@@ -314,8 +314,8 @@ void PfringPeersListClean()
 {
     PfringPeer *pitem;
 
-    while ((pitem = TAILQ_FIRST(&peerslist.peers))) {
-        TAILQ_REMOVE(&peerslist.peers, pitem, next);
+    while ((pitem = TAILQ_FIRST(&pf_peerslist.peers))) {
+        TAILQ_REMOVE(&pf_peerslist.peers, pitem, next);
         PfringPeerClean(pitem);
     }
 }
