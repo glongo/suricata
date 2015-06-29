@@ -982,13 +982,75 @@
     fi
     LIBS="${TMPLIBS}"
 
+#  # libpfring
+#    # libpfring (currently only supported for libpcap enabled pfring)
+#    # Error on the side of caution. If libpfring enabled pcap is being used and we don't link against -lpfring compilation will fail.
+#    AC_ARG_ENABLE(pfring,
+#           AS_HELP_STRING([--enable-pfring], [Enable Native PF_RING support]),,[enable_pfring=no])
+#    AS_IF([test "x$enable_pfring" = "xyes"], [
+#        CFLAGS="$CFLAGS -DHAVE_PFRING"
+
+        #We have to set CFLAGS for AC_TRY_COMPILE as it doesn't pay attention to CPPFLAGS
+#        AC_ARG_WITH(libpfring_includes,
+#                [  --with-libpfring-includes=DIR  libpfring include directory],
+#                [with_libpfring_includes="$withval"],[with_libpfring_includes=no])
+#        AC_ARG_WITH(libpfring_libraries,
+#                [  --with-libpfring-libraries=DIR    libpfring library directory],
+#                [with_libpfring_libraries="$withval"],[with_libpfring_libraries="no"])
+
+#        if test "$with_libpfring_includes" != "no"; then
+#            CPPFLAGS="${CPPFLAGS} -I${with_libpfring_includes}"
+#        fi
+
+#        if test "$with_libpfring_libraries" != "no"; then
+#            LDFLAGS="${LDFLAGS}  -L${with_libpfring_libraries}"
+#        fi
+
+#        LIBPFRING=""
+#        AC_CHECK_LIB(pfring, pfring_open,, LIBPFRING="no", [-lpcap])
+#        if test "$LIBPFRING" != "no"; then
+#            STORECFLAGS="${CFLAGS}"
+#            CFLAGS="${CFLAGS} -Werror"
+#            AC_COMPILE_IFELSE(
+#                [AC_LANG_PROGRAM(
+#                    [
+#                    #include <pfring.h>
+#                    ],
+#                    [
+#                    pfring_recv_chunk(NULL, NULL, 0, 0);
+#                    ])],
+#                [pfring_recv_chunk="yes"],
+#                [pfring_recv_chunk="no"])
+#            CFLAGS="${STORECFLAGS}"
+#            if test "x$pfring_recv_chunk" != "xyes"; then
+#                if test "x$enable_pfring" = "xyes"; then
+#                echo
+#                echo "   ERROR! --enable-pfring was passed but the library version is < 6, go get it"
+#                echo "   from http://www.ntop.org/products/pf_ring/"
+#                echo
+#                exit 1
+#                fi
+#            else
+#                LIBS="${LIBS} -lrt -lnuma"
+#            fi
+#        else
+#            if test "x$enable_pfring" = "xyes"; then
+#            echo
+#            echo "   ERROR! --enable-pfring was passed but the library was not found, go get it"
+#            echo "   from http://www.ntop.org/products/pf_ring/"
+#            echo
+#            exit 1
+#            fi
+#        fi
+#    ])
+
   # libpfring
     # libpfring (currently only supported for libpcap enabled pfring)
     # Error on the side of caution. If libpfring enabled pcap is being used and we don't link against -lpfring compilation will fail.
     AC_ARG_ENABLE(pfring,
-           AS_HELP_STRING([--enable-pfring], [Enable Native PF_RING support]),,[enable_pfring=no])
+           AS_HELP_STRING([--enable-pfring], [Enable Native PF_RING ZC support]),,[enable_pfring=no])
     AS_IF([test "x$enable_pfring" = "xyes"], [
-        CFLAGS="$CFLAGS -DHAVE_PFRING"
+        CFLAGS="$CFLAGS -DHAVE_PFRING_ZC"
 
         #We have to set CFLAGS for AC_TRY_COMPILE as it doesn't pay attention to CPPFLAGS
         AC_ARG_WITH(libpfring_includes,
@@ -1007,22 +1069,22 @@
         fi
 
         LIBPFRING=""
-        AC_CHECK_LIB(pfring, pfring_open,, LIBPFRING="no", [-lpcap])
+        AC_CHECK_LIB(pfring, pfring_zc_open_device,, LIBPFRING="no", [-lpcap])
         if test "$LIBPFRING" != "no"; then
             STORECFLAGS="${CFLAGS}"
             CFLAGS="${CFLAGS} -Werror"
             AC_COMPILE_IFELSE(
                 [AC_LANG_PROGRAM(
                     [
-                    #include <pfring.h>
+                    #include <pfring_zc.h>
                     ],
                     [
-                    pfring_recv_chunk(NULL, NULL, 0, 0);
+                    pfring_zc_check_license();
                     ])],
-                [pfring_recv_chunk="yes"],
-                [pfring_recv_chunk="no"])
+                [pfring_zc_check_license="yes"],
+                [pfring_zc_check_license="no"])
             CFLAGS="${STORECFLAGS}"
-            if test "x$pfring_recv_chunk" != "xyes"; then
+            if test "x$pfring_zc_check_license" != "xyes"; then
                 if test "x$enable_pfring" = "xyes"; then
                 echo
                 echo "   ERROR! --enable-pfring was passed but the library version is < 6, go get it"
