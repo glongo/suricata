@@ -536,6 +536,7 @@ int SigLoadSignatures(DetectEngineCtx *de_ctx, char *sig_file, int sig_file_excl
     if (SigGroupBuild(de_ctx) < 0)
         goto end;
 
+    de_ctx->last_reload = time(NULL);
     ret = 0;
 
  end:

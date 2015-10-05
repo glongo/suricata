@@ -716,6 +716,9 @@ typedef struct DetectEngineCtx_ {
     /** id of loader thread 'owning' this de_ctx */
     int loader_id;
 
+    /** time of last ruleset reload */
+    time_t last_reload;
+
 } DetectEngineCtx;
 
 /* Engine groups profiles (low, medium, high, custom) */

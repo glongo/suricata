@@ -239,6 +239,23 @@ json_t *CreateJSONHeader(Packet *p, int direction_sensitive, char *event_type)
     /* time & tx */
     json_object_set_new(js, "timestamp", json_string(timebuf));
 
+    /* last ruleset reload */
+    time_t last_reload = DetectEngineGetLastReload();
+    struct tm *tms = NULL;
+    struct tm local_tm;
+    char timeString[25];
+    int r = 0;
+
+    if (last_reload != 0) {
+        tms = SCLocalTime(last_reload, &local_tm);
+        r = snprintf(timeString, sizeof(timeString),
+                     "%d/%d/%04d -- %02d:%02d:%02d",
+                     tms->tm_mday, tms->tm_mon + 1, tms->tm_year + 1900,
+                     tms->tm_hour, tms->tm_min, tms->tm_sec);
+        if (r) {
+            json_object_set_new(js, "last_reload", json_string(timeString));
+        }
+    }
     CreateJSONFlowId(js, (const Flow *)p->flow);
 
     /* sensor id */

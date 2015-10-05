@@ -659,6 +659,36 @@ TmEcode UnixManagerReloadRules(json_t *cmd, json_t *server_msg, void *data)
     SCReturnInt(TM_ECODE_OK);
 }
 
+TmEcode UnixManagerLastReloadCommand(json_t *cmd,
+                                     json_t *server_msg, void *data)
+{
+    SCEnter();
+    time_t last_reload = 0;
+    struct tm *tms = NULL;
+    struct tm local_tm;
+    char timeString[25];
+    int r = 0;
+
+    last_reload = DetectEngineGetLastReload();
+    if (last_reload == 0) {
+        json_object_set_new(server_msg, "message", json_string("Unable to get the time"));
+        SCReturnInt(TM_ECODE_FAILED);
+    }
+
+    tms = SCLocalTime(last_reload, &local_tm);
+    r = snprintf(timeString, sizeof(timeString),
+                 "%d/%d/%04d -- %02d:%02d:%02d",
+                 tms->tm_mday, tms->tm_mon + 1, tms->tm_year + 1900,
+                 tms->tm_hour, tms->tm_min, tms->tm_sec);
+    if (r < 0) {
+        json_object_set_new(server_msg, "message", json_string("Unable to get the time"));
+        SCReturnInt(TM_ECODE_FAILED);
+    }
+
+    json_object_set_new(server_msg, "message", json_string(timeString));
+    SCReturnInt(TM_ECODE_OK);
+}
+
 TmEcode UnixManagerConfGetCommand(json_t *cmd,
                                   json_t *server_msg, void *data)
 {
@@ -899,6 +929,7 @@ static TmEcode UnixManager(ThreadVars *th_v, void *thread_data)
     UnixManagerRegisterCommand("conf-get", UnixManagerConfGetCommand, &command, UNIX_CMD_TAKE_ARGS);
     UnixManagerRegisterCommand("dump-counters", StatsOutputCounterSocket, NULL, 0);
     UnixManagerRegisterCommand("reload-rules", UnixManagerReloadRules, NULL, 0);
+    UnixManagerRegisterCommand("last-reload", UnixManagerLastReloadCommand, NULL, 0);
     UnixManagerRegisterCommand("register-tenant-handler", UnixSocketRegisterTenantHandler, &command, UNIX_CMD_TAKE_ARGS);
     UnixManagerRegisterCommand("unregister-tenant-handler", UnixSocketUnregisterTenantHandler, &command, UNIX_CMD_TAKE_ARGS);
     UnixManagerRegisterCommand("register-tenant", UnixSocketRegisterTenant, &command, UNIX_CMD_TAKE_ARGS);

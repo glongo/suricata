@@ -1675,6 +1675,15 @@ DetectEngineCtx *DetectEngineGetCurrent(void)
     return master->list;
 }
 
+time_t DetectEngineGetLastReload(void)
+{
+    DetectEngineCtx *de_ctx = DetectEngineGetCurrent();
+    if (de_ctx == NULL)
+        return 0;
+
+    return de_ctx->last_reload;
+}
+
 DetectEngineCtx *DetectEngineReference(DetectEngineCtx *de_ctx)
 {
     if (de_ctx == NULL)
