@@ -769,6 +769,7 @@ static DetectEngineCtx *DetectEngineCtxInitReal(int minimal, const char *prefix)
         goto error;
 
     memset(de_ctx,0,sizeof(DetectEngineCtx));
+    memset(&de_ctx->sig_stat, 0, sizeof(SigFileLoaderStat));
 
     if (minimal) {
         de_ctx->minimal = 1;
@@ -1682,6 +1683,15 @@ time_t DetectEngineGetLastReload(void)
         return 0;
 
     return de_ctx->last_reload;
+}
+
+SigFileLoaderStat *DetectEngineGetSigStat(void)
+{
+    DetectEngineCtx *de_ctx = DetectEngineGetCurrent();
+    if (de_ctx == NULL)
+        return NULL;
+
+    return &de_ctx->sig_stat;
 }
 
 DetectEngineCtx *DetectEngineReference(DetectEngineCtx *de_ctx)

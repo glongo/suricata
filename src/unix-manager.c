@@ -664,6 +664,8 @@ TmEcode UnixManagerLastReloadCommand(json_t *cmd,
 {
     SCEnter();
     time_t last_reload = 0;
+    SigFileLoaderStat *sig_stat = NULL;
+    json_t *jdata;
     struct tm *tms = NULL;
     struct tm local_tm;
     char timeString[25];
@@ -675,6 +677,19 @@ TmEcode UnixManagerLastReloadCommand(json_t *cmd,
         SCReturnInt(TM_ECODE_FAILED);
     }
 
+    sig_stat = DetectEngineGetSigStat();
+    if (sig_stat == NULL) {
+        json_object_set_new(server_msg, "message", json_string("Unable to get rules stats"));
+        SCReturnInt(TM_ECODE_FAILED);
+    }
+
+    jdata = json_object();
+    if (jdata == NULL) {
+        json_object_set_new(server_msg, "message",
+                            json_string("internal error at json object creation"));
+        return TM_ECODE_FAILED;
+    }
+
     tms = SCLocalTime(last_reload, &local_tm);
     r = snprintf(timeString, sizeof(timeString),
                  "%d/%d/%04d -- %02d:%02d:%02d",
@@ -684,8 +699,11 @@ TmEcode UnixManagerLastReloadCommand(json_t *cmd,
         json_object_set_new(server_msg, "message", json_string("Unable to get the time"));
         SCReturnInt(TM_ECODE_FAILED);
     }
+    json_object_set_new(jdata, "last_reload", json_string(timeString));
+    json_object_set_new(jdata, "no_bad_rules", json_integer(sig_stat->bad_sigs_total));
+    json_object_set_new(jdata, "no_good_rules", json_integer(sig_stat->good_sigs_total));
 
-    json_object_set_new(server_msg, "message", json_string(timeString));
+    json_object_set_new(server_msg, "message", jdata);
     SCReturnInt(TM_ECODE_OK);
 }
 

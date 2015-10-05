@@ -256,6 +256,13 @@ json_t *CreateJSONHeader(Packet *p, int direction_sensitive, char *event_type)
             json_object_set_new(js, "last_reload", json_string(timeString));
         }
     }
+
+    SigFileLoaderStat *sig_stat = DetectEngineGetSigStat();
+    if (sig_stat != NULL) {
+        json_object_set_new(js, "no_good_rules", json_integer(sig_stat->good_sigs_total));
+        json_object_set_new(js, "no_bad_rules", json_integer(sig_stat->bad_sigs_total));
+    }
+
     CreateJSONFlowId(js, (const Flow *)p->flow);
 
     /* sensor id */

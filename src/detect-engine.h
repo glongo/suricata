@@ -72,6 +72,7 @@ int DetectEngineAddToMaster(DetectEngineCtx *de_ctx);
 DetectEngineCtx *DetectEngineGetCurrent(void);
 DetectEngineCtx *DetectEngineGetByTenantId(int tenant_id);
 time_t DetectEngineGetLastReload();
+SigFileLoaderStat *DetectEngineGetSigStat();
 void DetectEnginePruneFreeList(void);
 int DetectEngineMoveToFreeList(DetectEngineCtx *de_ctx);
 DetectEngineCtx *DetectEngineReference(DetectEngineCtx *);
