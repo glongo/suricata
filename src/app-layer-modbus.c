@@ -43,6 +43,7 @@
 #include "util-misc.h"
 
 #include "stream.h"
+#include "stream-tcp.h"
 
 #include "app-layer-protos.h"
 #include "app-layer-parser.h"
@@ -1320,6 +1321,9 @@ static int ModbusParseResponse(Flow                 *f,
 
             SCLogDebug("MODBUS_DECODER_EVENT_UNSOLICITED_RESPONSE");
             ModbusSetEvent(modbus, MODBUS_DECODER_EVENT_UNSOLICITED_RESPONSE);
+            if (StreamTcpMidstreamIsEnabled() && (f->tosrcpktcnt <= 1)) { /* it is initial data in stream */
+                AppLayerParserManualSetTransactionInspectId(pstate, header.transactionId + 1, 0);
+            }
         } else {
             /* Store PDU length */
             tx->length = header.length;
