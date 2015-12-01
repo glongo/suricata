@@ -114,6 +114,8 @@ typedef struct AppLayerParserProtoCtx_
     DetectEngineState *(*GetTxDetectState)(void *tx);
     int (*SetTxDetectState)(void *alstate, void *tx, DetectEngineState *);
 
+    void (*SetupTcpSession)(TcpSession *ssn);
+
     /* Indicates the direction the parser is ready to see the data
      * the first time for a flow.  Values accepted -
      * STREAM_TOSERVER, STREAM_TOCLIENT */
@@ -502,6 +504,18 @@ void AppLayerParserRegisterDetectStateFuncs(uint8_t ipproto, AppProto alproto,
     alp_ctx.ctxs[FlowGetProtoMapping(ipproto)][alproto].StateHasTxDetectState = StateHasTxDetectState;
     alp_ctx.ctxs[FlowGetProtoMapping(ipproto)][alproto].GetTxDetectState = GetTxDetectState;
     alp_ctx.ctxs[FlowGetProtoMapping(ipproto)][alproto].SetTxDetectState = SetTxDetectState;
+
+    SCReturn;
+}
+
+void AppLayerParserRegisterSetupTcpSession(uint8_t ipproto,
+                                           AppProto alproto,
+                   void (*SetupTcpSession)(TcpSession *ssn))
+{
+    SCEnter();
+
+    alp_ctx.ctxs[FlowGetProtoMapping(ipproto)][alproto].
+        SetupTcpSession = SetupTcpSession;
 
     SCReturn;
 }
@@ -1116,6 +1130,17 @@ void AppLayerParserTriggerRawStreamReassembly(Flow *f)
         StreamTcpReassembleTriggerRawReassembly(f->protoctx);
 
     SCReturn;
+}
+
+void AppLayerParserSetupTcpSession(uint8_t ipproto, AppProto alproto,
+                                   TcpSession *ssn)
+{
+    SCEnter();
+
+    if (alp_ctx.ctxs[FlowGetProtoMapping(ipproto)][alproto].SetupTcpSession != NULL)
+    {
+        alp_ctx.ctxs[FlowGetProtoMapping(ipproto)][alproto].SetupTcpSession(ssn);
+    }
 }
 
 /***** Cleanup *****/
