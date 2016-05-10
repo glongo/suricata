@@ -1267,7 +1267,7 @@ static int LuaMatchTest01(void)
     }
     de_ctx->flags |= DE_QUIET;
 
-    s = DetectEngineAppendSig(de_ctx, sig);
+    s = DetectEngineAppendSig(de_ctx, sig, NULL);
     if (s == NULL) {
         printf("sig parse failed: ");
         goto end;
@@ -1429,7 +1429,7 @@ static int LuaMatchTest02(void)
     }
     de_ctx->flags |= DE_QUIET;
 
-    s = DetectEngineAppendSig(de_ctx, sig);
+    s = DetectEngineAppendSig(de_ctx, sig, NULL);
     if (s == NULL) {
         printf("sig parse failed: ");
         goto end;
@@ -1565,7 +1565,7 @@ static int LuaMatchTest03(void)
     }
     de_ctx->flags |= DE_QUIET;
 
-    s = DetectEngineAppendSig(de_ctx, sig);
+    s = DetectEngineAppendSig(de_ctx, sig, NULL);
     if (s == NULL) {
         printf("sig parse failed: ");
         goto end;
@@ -1701,7 +1701,7 @@ static int LuaMatchTest04(void)
     }
     de_ctx->flags |= DE_QUIET;
 
-    s = DetectEngineAppendSig(de_ctx, sig);
+    s = DetectEngineAppendSig(de_ctx, sig, NULL);
     if (s == NULL) {
         printf("sig parse failed: ");
         goto end;
@@ -1849,7 +1849,7 @@ static int LuaMatchTest05(void)
     }
     de_ctx->flags |= DE_QUIET;
 
-    s = DetectEngineAppendSig(de_ctx, sig);
+    s = DetectEngineAppendSig(de_ctx, sig, NULL);
     if (s == NULL) {
         printf("sig parse failed: ");
         goto end;
@@ -2002,7 +2002,7 @@ static int LuaMatchTest06(void)
     }
     de_ctx->flags |= DE_QUIET;
 
-    s = DetectEngineAppendSig(de_ctx, sig);
+    s = DetectEngineAppendSig(de_ctx, sig, NULL);
     if (s == NULL) {
         printf("sig parse failed: ");
         goto end;
