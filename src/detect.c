@@ -328,7 +328,7 @@ static int DetectLoadSigFile(DetectEngineCtx *de_ctx, char *sig_file,
         de_ctx->rule_file = sig_file;
         de_ctx->rule_line = lineno - multiline;
 
-        sig = DetectEngineAppendSig(de_ctx, line);
+        sig = DetectEngineAppendSig(de_ctx, line, NULL);
         if (sig != NULL) {
             if (rule_engine_analysis_set || fp_engine_analysis_set) {
                 RetrieveFPForSig(sig);
@@ -9874,13 +9874,15 @@ static int SigTestBug01(void)
     }
     de_ctx->flags |= DE_QUIET;
 
-    s = DetectEngineAppendSig(de_ctx, "alert tcp any any -> any any "
-                                   "(content:\"Omymy\"; nocase; sid:1;)");
+    s = DetectEngineAppendSig(de_ctx,
+                              "alert tcp any any -> any any " "(content:\"Omymy\"; nocase; sid:1;)",
+                              NULL);
     if (s == NULL) {
         goto end;
     }
-    s = DetectEngineAppendSig(de_ctx, "alert tcp any any -> any any "
-                                   "(content:\"!mymy\"; nocase; sid:2;)");
+    s = DetectEngineAppendSig(de_ctx,
+                              "alert tcp any any -> any any " "(content:\"!mymy\"; nocase; sid:2;)",
+                              NULL);
     if (s == NULL) {
         goto end;
     }
@@ -9944,11 +9946,11 @@ static int DetectAddressYamlParsing01 (void)
 
     de_ctx->flags |= DE_QUIET;
 
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> any any (sid:1;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> any any (sid:1;)", NULL)) == NULL)
         goto end;
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp any any -> $HOME_NET any (sid:2;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp any any -> $HOME_NET any (sid:2;)", NULL)) == NULL)
         goto end;
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> $HOME_NET any (sid:3;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> $HOME_NET any (sid:3;)", NULL)) == NULL)
         goto end;
 
     result = 1;
@@ -9991,11 +9993,11 @@ static int DetectAddressYamlParsing02 (void)
 
     de_ctx->flags |= DE_QUIET;
 
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> any any (sid:1;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> any any (sid:1;)", NULL)) == NULL)
         goto end;
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp any any -> $HOME_NET any (sid:2;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp any any -> $HOME_NET any (sid:2;)", NULL)) == NULL)
         goto end;
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> $HOME_NET any (sid:3;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> $HOME_NET any (sid:3;)", NULL)) == NULL)
         goto end;
 
     result = 1;
@@ -10038,11 +10040,11 @@ static int DetectAddressYamlParsing03 (void)
 
     de_ctx->flags |= DE_QUIET;
 
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> any any (sid:1;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> any any (sid:1;)", NULL)) == NULL)
         goto end;
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp any any -> $HOME_NET any (sid:2;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp any any -> $HOME_NET any (sid:2;)", NULL)) == NULL)
         goto end;
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> $HOME_NET any (sid:3;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> $HOME_NET any (sid:3;)", NULL)) == NULL)
         goto end;
 
     result = 1;
@@ -10086,11 +10088,11 @@ static int DetectAddressYamlParsing04 (void)
 
     de_ctx->flags |= DE_QUIET;
 
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> any any (sid:1;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> any any (sid:1;)", NULL)) == NULL)
         goto end;
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp any any -> $HOME_NET any (sid:2;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp any any -> $HOME_NET any (sid:2;)", NULL)) == NULL)
         goto end;
-    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> $HOME_NET any (sid:3;)")) == NULL)
+    if ((DetectEngineAppendSig(de_ctx, "alert tcp $HOME_NET any -> $HOME_NET any (sid:3;)", NULL)) == NULL)
         goto end;
 
     result = 1;
