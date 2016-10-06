@@ -118,3 +118,16 @@ int SigStringAppend(SigFileLoaderStat *sig_stats, const char *sig_file,
 
     return 1;
 }
+
+void SigAppendError(DetectEngineCtx *de_ctx, const char *sigerror)
+{
+    SCLogError(SC_ERR_INVALID_SIGNATURE, sigerror);
+
+    if (de_ctx == NULL)
+        return;
+
+    de_ctx->sigerror = SCStrdup(sigerror);
+    if (de_ctx->sigerror == NULL) {
+        SCLogError(SC_ERR_MEM_ALLOC, "Can't allocate sig error");
+    }
+}

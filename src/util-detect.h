@@ -26,3 +26,4 @@
 SigString *SigStringAlloc(void);
 int SigStringAppend(SigFileLoaderStat *sigs_stats, const char *sig_file, const char *sig_str,
                     const char *sig_error, int line);
+void SigAppendError(DetectEngineCtx *de_ctx, const char *sigerror);
