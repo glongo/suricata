@@ -131,7 +131,7 @@ enum {
 PacketQueue trans_q[256];
 
 typedef struct SCInstance_ {
-    enum RunModes run_mode;
+    RunModesList runmodeslist;
 
     char pcap_dev[128];
     char *sig_file;
@@ -177,7 +177,6 @@ void EngineStop(void);
 void EngineDone(void);
 
 int RunmodeIsUnittests(void);
-int RunmodeGetCurrent(void);
 int IsRuleReloadSet(int quiet);
 
 int SuriHasSigFile(void);
