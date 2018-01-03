@@ -249,6 +249,9 @@ If extended logging is enabled the following fields are also included:
 * "version": The SSL/TLS version used
 * "notbefore": The NotBefore field from the TLS certificate
 * "notafter": The NotAfter field from the TLS certificate
+* "subject_public_key_algorithm": The algorithm used with the public key
+* "certificate_signature_algorithm": The algorithm identifier used by the CA
+* "signature_algorithm": The algorithm identifier used by the CA, it must be the same as the field above.
 
 In addition to this, custom logging also allows the following fields:
 
@@ -287,7 +290,10 @@ Example of extended TLS logging:
       "sni": "calendar.google.com",
       "version": "TLS 1.2",
       "notbefore": "2017-01-04T10:48:43",
-      "notafter": "2017-03-29T10:18:00"
+      "notafter": "2017-03-29T10:18:00",
+      "subject_public_key_algorithm": "1.2.840.10045.2.1",
+      "certificate_signature_algorithm": "PKCS #1 SHA-256 With RSA Encryption",
+      "signature_algorithm": "PKCS #1 SHA-256 With RSA Encryption"
   }
 
 Example of certificate logging using TLS custom logging (subject, sni, certificate):
