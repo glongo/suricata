@@ -406,6 +406,10 @@ static void GlobalsDestroy(SCInstance *suri)
     NFQContextsClean();
 #endif
 
+#ifdef HAVE_PFRING
+    PfringPeersListClean();
+#endif
+
     SC_ATOMIC_DESTROY(engine_stage);
 
 #ifdef BUILD_HYPERSCAN
