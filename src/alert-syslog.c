@@ -219,7 +219,7 @@ static TmEcode AlertSyslogIPv4(ThreadVars *tv, const Packet *p, void *data)
         PrintInet(AF_INET, (const void *)GET_IPV4_SRC_ADDR_PTR(p), srcip, sizeof(srcip));
         PrintInet(AF_INET, (const void *)GET_IPV4_DST_ADDR_PTR(p), dstip, sizeof(dstip));
 
-        if ((pa->action & ACTION_DROP) && EngineModeIsIPS()) {
+        if ((pa->action & ACTION_DROP) && PacketModeIsIPS(p)) {
             action = "[Drop] ";
         } else if (pa->action & ACTION_DROP) {
             action = "[wDrop] ";
@@ -275,7 +275,7 @@ static TmEcode AlertSyslogIPv6(ThreadVars *tv, const Packet *p, void *data)
         PrintInet(AF_INET6, (const void *)GET_IPV6_SRC_ADDR(p), srcip, sizeof(srcip));
         PrintInet(AF_INET6, (const void *)GET_IPV6_DST_ADDR(p), dstip, sizeof(dstip));
 
-        if ((pa->action & ACTION_DROP) && EngineModeIsIPS()) {
+        if ((pa->action & ACTION_DROP) && PacketModeIsIPS(p)) {
             action = "[Drop] ";
         } else if (pa->action & ACTION_DROP) {
             action = "[wDrop] ";
@@ -336,7 +336,7 @@ static TmEcode AlertSyslogDecoderEvent(ThreadVars *tv, const Packet *p, void *da
             continue;
         }
 
-        if ((pa->action & ACTION_DROP) && EngineModeIsIPS()) {
+        if ((pa->action & ACTION_DROP) && PacketModeIsIPS(p)) {
             action = "[Drop] ";
         } else if (pa->action & ACTION_DROP) {
             action = "[wDrop] ";
