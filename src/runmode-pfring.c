@@ -444,7 +444,7 @@ int RunModeIdsPfringAutoFp(void)
                               PfringConfigGeThreadsCount,
                               "ReceivePfring",
                               "DecodePfring", thread_name_autofp,
-                              live_dev);
+                              live_dev, RUNMODE_PFRING);
     if (ret != 0) {
         SCLogError(SC_ERR_RUNMODE, "Runmode start failed");
         exit(EXIT_FAILURE);
@@ -481,7 +481,7 @@ int RunModeIdsPfringSingle(void)
                               PfringConfigGeThreadsCount,
                               "ReceivePfring",
                               "DecodePfring", thread_name_single,
-                              live_dev);
+                              live_dev, RUNMODE_PFRING);
     if (ret != 0) {
         SCLogError(SC_ERR_RUNMODE, "Runmode start failed");
         exit(EXIT_FAILURE);
@@ -518,7 +518,7 @@ int RunModeIdsPfringWorkers(void)
                               PfringConfigGeThreadsCount,
                               "ReceivePfring",
                               "DecodePfring", thread_name_workers,
-                              live_dev);
+                              live_dev, RUNMODE_PFRING);
     if (ret != 0) {
         SCLogError(SC_ERR_RUNMODE, "Runmode start failed");
         exit(EXIT_FAILURE);
