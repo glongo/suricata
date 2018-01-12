@@ -99,6 +99,8 @@ typedef struct OutputFreeList_ {
 static TAILQ_HEAD(, OutputFreeList_) output_free_list =
     TAILQ_HEAD_INITIALIZER(output_free_list);
 
+extern RunModesList runmodeslist;
+
 /**
  * \internal
  * \brief Translate a runmode mode to a printale string.
@@ -192,9 +194,9 @@ char *RunmodeGetActive(void)
  *
  * \return a string containing the current running mode
  */
-const char *RunModeGetMainMode(void)
+const char *RunModeGetMainMode(int index)
 {
-    int mainmode = RunmodeGetCurrent();
+    int mainmode = RunmodeGetCurrent(&runmodeslist, index);
 
     return RunModeTranslateModeToName(mainmode);
 }

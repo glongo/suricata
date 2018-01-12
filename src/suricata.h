@@ -66,6 +66,7 @@
 
 #include "suricata-common.h"
 #include "packet-queue.h"
+#include "runmodes-list.h"
 
 /* the name of our binary */
 #define PROG_NAME "Suricata"

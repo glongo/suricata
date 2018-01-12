@@ -335,6 +335,7 @@ runmode-unittests.c runmode-unittests.h \
 runmode-unix-socket.c runmode-unix-socket.h \
 runmode-tile.c runmode-tile.h \
 runmodes.c runmodes.h \
+runmodes-list.c runmodes-list.h \
 rust.h \
 source-af-packet.c source-af-packet.h \
 source-erf-dag.c source-erf-dag.h \

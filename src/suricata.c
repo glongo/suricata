@@ -2063,8 +2063,6 @@ static TmEcode ParseCommandLine(int argc, char** argv, SCInstance *suri)
 
     if (list_app_layer_protocols)
         RunmodeSetCurrent(runmodes, RUNMODE_LIST_APP_LAYERS, 0);
-    if (list_cuda_cards)
-        RunmodeSetCurrent(runmodes, RUNMODE_LIST_CUDA_CARDS, 0);
     if (list_keywords)
         RunmodeSetCurrent(runmodes, RUNMODE_LIST_KEYWORDS, 0);
     if (list_unittests)
@@ -2076,7 +2074,7 @@ static TmEcode ParseCommandLine(int argc, char** argv, SCInstance *suri)
     if (engine_analysis)
         RunmodeSetCurrent(runmodes, RUNMODE_ENGINE_ANALYSIS, 0);
 
-    suri->offline = IsRunModeOffline(suri->run_mode);
+    suri->offline = IsRunModeOffline(RunmodeGetPrimary(&suri->runmodeslist));
 
     ret = SetBpfString(optind, argv);
     if (ret != TM_ECODE_OK)
