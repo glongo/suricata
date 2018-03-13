@@ -67,6 +67,7 @@
 #include "output-json-nfs.h"
 #include "output-json-smb.h"
 #include "output-json-flow.h"
+#include "output-json-file.h"
 
 #include "util-byte.h"
 #include "util-privs.h"
@@ -91,6 +92,7 @@
 #define LOG_JSON_HTTP_BODY_BASE64  BIT_U16(7)
 #define LOG_JSON_RULE_METADATA     BIT_U16(8)
 #define LOG_JSON_RULE              BIT_U16(9)
+#define LOG_JSON_FILEINFO          BIT_U16(10)
 
 #define METADATA_DEFAULTS ( LOG_JSON_FLOW |                        \
             LOG_JSON_APP_LAYER  |                                  \
@@ -525,6 +527,36 @@ static int AlertJson(ThreadVars *tv, JsonAlertLogThread *aft, const Packet *p)
                 json_object_set_new(js, "app_proto",
                         json_string(AppProtoToString(p->flow->alproto)));
             }
+            if (json_output_ctx->flags & LOG_JSON_FILEINFO) {
+                uint8_t flags = 0;
+                if (p->flowflags & FLOW_PKT_TOCLIENT)
+                    flags |= STREAM_TOCLIENT;
+                else
+                    flags |= STREAM_TOSERVER;
+
+                FileContainer *ffc = AppLayerParserGetFiles(p->flow->proto, p->flow->alproto,
+                                                            p->flow->alstate, flags);
+                if (ffc != NULL) {
+                    hjs = json_array();
+                    if (hjs) {
+                        File *f = NULL;
+                        for (f = ffc->head; f != NULL; f = f->next) {
+                            if (f->txid == pa->tx_id) {
+                                uint8_t fileflags = 0;
+                                if (f->flags & FILE_STORED) {
+                                    fileflags |= FILE_LOG_STORED;
+                                }
+                                fileflags |= FILE_LOG_METADATA;
+                                json_t *fjs = JsonBuildFileInfoRecord(p, f, fileflags);
+                                if (js) {
+                                    json_array_append_new(hjs, fjs);
+                                }
+                            }
+                        }
+                        json_object_set_new(js, "fileinfo", hjs);
+                    }
+                }
+            }
         }
 
         /* payload */
@@ -868,6 +900,7 @@ static void XffSetup(AlertJsonOutputCtx *json_output_ctx, ConfNode *conf)
         SetFlag(conf, "payload-printable", LOG_JSON_PAYLOAD, &flags);
         SetFlag(conf, "http-body-printable", LOG_JSON_HTTP_BODY, &flags);
         SetFlag(conf, "http-body", LOG_JSON_HTTP_BODY_BASE64, &flags);
+        SetFlag(conf, "fileinfo", LOG_JSON_FILEINFO, &flags);
 
         /* Check for obsolete configuration flags to enable specific
          * protocols. These are now just aliases for enabling
