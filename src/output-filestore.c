@@ -162,7 +162,7 @@ static void OutputFilestoreFinalizeFiles(ThreadVars *tv,
         snprintf(js_metadata_filename, sizeof(js_metadata_filename),
                 "%s.%"PRIuMAX".%u.json", final_filename,
                 (uintmax_t)p->ts.tv_sec, ff->file_store_id);
-        json_t *js_fileinfo = JsonBuildFileInfoRecord(p, ff, true);
+        json_t *js_fileinfo = JsonBuildFileInfoRecord(p, ff, FILE_LOG_STORED);
         if (likely(js_fileinfo != NULL)) {
             json_dump_file(js_fileinfo, js_metadata_filename, 0);
             json_decref(js_fileinfo);

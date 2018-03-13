@@ -79,47 +79,49 @@ typedef struct JsonFileLogThread_ {
     MemBuffer *buffer;
 } JsonFileLogThread;
 
-json_t *JsonBuildFileInfoRecord(const Packet *p, const File *ff,
-        const bool stored)
+json_t *JsonBuildFileInfoRecord(const Packet *p, const File *ff, uint8_t flags)
 {
-    json_t *js = CreateJSONHeader(p, LOG_DIR_PACKET, "fileinfo");
-    json_t *hjs = NULL;
-    if (unlikely(js == NULL))
-        return NULL;
+    json_t *js = NULL;
+    if (!(flags & FILE_LOG_METADATA)) {
+        js = CreateJSONHeader(p, LOG_DIR_PACKET, "fileinfo");
+        json_t *hjs = NULL;
+        if (unlikely(js == NULL))
+            return NULL;
 
-    switch (p->flow->alproto) {
-        case ALPROTO_HTTP:
-            hjs = JsonHttpAddMetadata(p->flow, ff->txid);
-            if (hjs)
-                json_object_set_new(js, "http", hjs);
-            break;
-        case ALPROTO_SMTP:
-            hjs = JsonSMTPAddMetadata(p->flow, ff->txid);
-            if (hjs)
-                json_object_set_new(js, "smtp", hjs);
-            hjs = JsonEmailAddMetadata(p->flow, ff->txid);
-            if (hjs)
-                json_object_set_new(js, "email", hjs);
-            break;
+        switch (p->flow->alproto) {
+            case ALPROTO_HTTP:
+                hjs = JsonHttpAddMetadata(p->flow, ff->txid);
+                if (hjs)
+                    json_object_set_new(js, "http", hjs);
+                break;
+            case ALPROTO_SMTP:
+                hjs = JsonSMTPAddMetadata(p->flow, ff->txid);
+                if (hjs)
+                    json_object_set_new(js, "smtp", hjs);
+                hjs = JsonEmailAddMetadata(p->flow, ff->txid);
+                if (hjs)
+                    json_object_set_new(js, "email", hjs);
+                break;
 #ifdef HAVE_RUST
-        case ALPROTO_NFS:
-            hjs = JsonNFSAddMetadataRPC(p->flow, ff->txid);
-            if (hjs)
-                json_object_set_new(js, "rpc", hjs);
-            hjs = JsonNFSAddMetadata(p->flow, ff->txid);
-            if (hjs)
-                json_object_set_new(js, "nfs", hjs);
-            break;
-        case ALPROTO_SMB:
-            hjs = JsonSMBAddMetadata(p->flow, ff->txid);
-            if (hjs)
-                json_object_set_new(js, "smb", hjs);
-            break;
+            case ALPROTO_NFS:
+                hjs = JsonNFSAddMetadataRPC(p->flow, ff->txid);
+                if (hjs)
+                    json_object_set_new(js, "rpc", hjs);
+                hjs = JsonNFSAddMetadata(p->flow, ff->txid);
+                if (hjs)
+                    json_object_set_new(js, "nfs", hjs);
+                break;
+            case ALPROTO_SMB:
+                hjs = JsonSMBAddMetadata(p->flow, ff->txid);
+                if (hjs)
+                    json_object_set_new(js, "smb", hjs);
+                break;
 #endif
-    }
+        }
 
-    json_object_set_new(js, "app_proto",
-            json_string(AppProtoToString(p->flow->alproto)));
+        json_object_set_new(js, "app_proto",
+                json_string(AppProtoToString(p->flow->alproto)));
+    }
 
     json_t *fjs = json_object();
     if (unlikely(fjs == NULL)) {
@@ -183,12 +185,16 @@ json_t *JsonBuildFileInfoRecord(const Packet *p, const File *ff,
     }
 #endif
 
-    json_object_set_new(fjs, "stored", stored ? json_true() : json_false());
+    json_object_set_new(fjs, "stored", (flags & FILE_LOG_STORED)  ? json_true() : json_false());
     if (ff->flags & FILE_STORED) {
         json_object_set_new(fjs, "file_id", json_integer(ff->file_store_id));
     }
     json_object_set_new(fjs, "size", json_integer(FileTrackedSize(ff)));
     json_object_set_new(fjs, "tx_id", json_integer(ff->txid));
+
+    if (flags & FILE_LOG_METADATA) {
+        return fjs;
+    }
 
     /* originally just 'file', but due to bug 1127 naming it fileinfo */
     json_object_set_new(js, "fileinfo", fjs);
@@ -203,7 +209,7 @@ json_t *JsonBuildFileInfoRecord(const Packet *p, const File *ff,
 static void FileWriteJsonRecord(JsonFileLogThread *aft, const Packet *p, const File *ff)
 {
     json_t *js = JsonBuildFileInfoRecord(p, ff,
-            ff->flags & FILE_STORED ? true : false);
+            ff->flags & FILE_STORED ? FILE_LOG_STORED : 0);
     if (unlikely(js == NULL)) {
         return;
     }
