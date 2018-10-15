@@ -877,10 +877,11 @@ int NFQRegisterQueue(const uint16_t number)
     nq->queue_num = number;
     receive_queue_num++;
     SCMutexUnlock(&nfq_init_lock);
+
     snprintf(queue, sizeof(queue) - 1, "NFQ#%hu", number);
     LiveRegisterDevice(queue);
 
-    ntv->livedev = LiveGetDevice(queue);
+    ntv->livedev = LiveGetDevice(queue, RUNMODE_NFQ);
 
     if (ntv->livedev == NULL) {
         SCLogError(SC_ERR_INVALID_VALUE, "Unable to find Live device");
