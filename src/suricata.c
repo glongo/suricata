@@ -2430,9 +2430,11 @@ static int ConfigGetCaptureValue(SCInstance *suri)
         int strip_trailing_plus = 0;
         int i;
         enum RunModes runmode;
-        for (i = 0; i < RunmodesSlotsGetSlotsCount(&suri->runmodes); i++) {
+        for (i = 0; i < RunmodesSlotsGetSlotsCount(&suri->runmodes); i++)
+        {
             runmode = RunmodesSlotsGetRunmode(&suri->runmodes, i);
-            switch (runmode) {
+            switch (runmode)
+            {
 #ifdef WINDIVERT
                 case RUNMODE_WINDIVERT:
                     /* by default, WinDivert collects from all devices */
@@ -2449,42 +2451,45 @@ static int ConfigGetCaptureValue(SCInstance *suri)
                     default_packet_size = DEFAULT_PACKET_SIZE;
                     break;
 #endif /* WINDIVERT */
-            case RUNMODE_NETMAP:
-                /* in netmap igb0+ has a special meaning, however the
-                 * interface really is igb0 */
-                strip_trailing_plus = 1;
-                /* fall through */
-            case RUNMODE_PCAP_DEV:
-            case RUNMODE_AFP_DEV:
-            case RUNMODE_PFRING:
-                nlive = LiveGetDeviceCount(runmode);
-                for (lthread = 0; lthread < nlive; lthread++) {
-                    const char *live_dev = LiveGetDeviceName(lthread, RUNMODE_PFRING);
-                    char dev[128]; /* need to be able to support GUID names on Windows */
-                    (void)strlcpy(dev, live_dev, sizeof(dev));
-
-                    if (strip_trailing_plus) {
-                        size_t len = strlen(dev);
-                        if (len &&
-                                (dev[len-1] == '+' ||
-                                 dev[len-1] == '^' ||
-                                 dev[len-1] == '*'))
-                        {
-                            dev[len-1] = '\0';
-                        }
-                        mtu = GetIfaceMTU(dev);
-                        g_default_mtu = MAX(mtu, g_default_mtu);
-
-                        unsigned int iface_max_packet_size = GetIfaceMaxPacketSize(dev);
-                        if (iface_max_packet_size > default_packet_size)
-                            default_packet_size = iface_max_packet_size;
-                    }
-                    if (default_packet_size)
-                        break;
+                case RUNMODE_NETMAP:
+                    /* in netmap igb0+ has a special meaning, however the
+                     * interface really is igb0 */
+                    strip_trailing_plus = 1;
                     /* fall through */
-                default:
-                    g_default_mtu = DEFAULT_MTU;
-                    default_packet_size = DEFAULT_PACKET_SIZE;
+                case RUNMODE_PCAP_DEV:
+                case RUNMODE_AFP_DEV:
+                case RUNMODE_PFRING:
+                    nlive = LiveGetDeviceCount(runmode);
+                    for (lthread = 0; lthread < nlive; lthread++)
+                    {
+                        const char* live_dev = LiveGetDeviceName(lthread, RUNMODE_PFRING);
+                        char dev[128]; /* need to be able to support GUID names on Windows */
+                        (void) strlcpy(dev, live_dev, sizeof(dev));
+
+                        if (strip_trailing_plus)
+                        {
+                            size_t len = strlen(dev);
+                            if (len &&
+                                (dev[len - 1] == '+' ||
+                                 dev[len - 1] == '^' ||
+                                 dev[len - 1] == '*'))
+                            {
+                                dev[len - 1] = '\0';
+                            }
+                            mtu = GetIfaceMTU(dev);
+                            g_default_mtu = MAX(mtu, g_default_mtu);
+
+                            unsigned int iface_max_packet_size = GetIfaceMaxPacketSize(dev);
+                            if (iface_max_packet_size > default_packet_size)
+                                default_packet_size = iface_max_packet_size;
+                        }
+                        if (default_packet_size)
+                            break;
+                        /* fall through */
+                        default:
+                            g_default_mtu = DEFAULT_MTU;
+                        default_packet_size = DEFAULT_PACKET_SIZE;
+                    }
             }
         }
     } else {
