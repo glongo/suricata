@@ -33,7 +33,7 @@ pub struct Request {
     pub method: String,
     pub path: String,
     pub version: String,
-    pub headers: HashMap<String, String>
+    pub headers: HashMap<String, Vec<String>>
 }
 
 #[derive(Debug)]
@@ -151,9 +151,9 @@ named!(pub sip_take_line<&[u8], Option<String> >,
     )
 );
 
-pub fn parse_headers(mut input: &[u8]) -> IResult<&[u8],HashMap<String, String>>
+pub fn parse_headers(mut input: &[u8]) -> IResult<&[u8],HashMap<String, Vec<String>>>
 {
-    let mut headers_map: HashMap<String, String> = HashMap::new();
+    let mut headers_map: HashMap<String, Vec<String>> = HashMap::new();
     loop {
         match crlf(input) {
             Ok((_, _)) => {
@@ -164,7 +164,9 @@ pub fn parse_headers(mut input: &[u8]) -> IResult<&[u8],HashMap<String, String>>
             Err(Err::Incomplete(e)) => return Err(Err::Incomplete(e)),
         };
         let (rest, header) = try_parse!(input, message_header);
-        headers_map.insert(header.name, header.value);
+        headers_map.entry(header.name)
+                   .or_insert_with(Vec::new)
+                   .push(header.value);
         input = rest;
     }
 

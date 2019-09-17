@@ -30,6 +30,15 @@ pub extern "C" fn rs_sip_log_json(_state: &mut SIPState, tx: &mut SIPTransaction
             js.set_string("method", &req.method);
             js.set_string("uri", &req.path);
             js.set_string("version", &req.version);
+            let jsh = Json::object();
+            for (header_name, header_values) in &req.headers {
+                let jsa = Json::array();
+                for hvalue in header_values.iter() {
+                    jsa.array_append_string(&format!("{:?}", hvalue));
+                }
+                jsh.set(&format!("{}", header_name), jsa);
+            }
+            js.set("headers", jsh);
         },
         None => {}
     }
