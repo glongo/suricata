@@ -68,6 +68,7 @@
 #include "app-layer-template.h"
 #include "app-layer-template-rust.h"
 #include "app-layer-rdp.h"
+#include "app-layer-mysql.h"
 
 #include "conf.h"
 #include "util-spm.h"
@@ -1589,6 +1590,7 @@ void AppLayerParserRegisterProtocolParsers(void)
     RegisterTemplateRustParsers();
     RegisterTemplateParsers();
     RegisterRdpParsers();
+    RegisterMysqlParsers();
 
     /** IMAP */
     AppLayerProtoDetectRegisterProtocol(ALPROTO_IMAP, "imap");
