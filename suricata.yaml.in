@@ -264,6 +264,7 @@ outputs:
         - krb5
         - snmp
         #- sip
+        - mysql
         - dhcp:
             enabled: yes
             # When extended mode is on, all DHCP messages are logged

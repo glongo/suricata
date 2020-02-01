@@ -15,8 +15,17 @@
  * 02110-1301, USA.
  */
 
-// written by Giuseppe Longo <giuseppe@glongo.it>
+/**
+ * \file
+ *
+ * \author Giuseppe Longo <giuseppe@glongo.it>
+ */
 
-pub mod mysql;
-pub mod parser;
-pub mod log;
+#ifndef __OUTPUT_JSON_MYSQL_H__
+#define __OUTPUT_JSON_MYSQL_H__
+
+void JsonMysqlLogRegister(void);
+
+json_t *JsonMysqlAddMetadata(const Flow *f, uint64_t tx_id);
+
+#endif /* __OUTPUT_JSON_MYSQL_H__ */

@@ -78,6 +78,7 @@
 #include "output-json-template.h"
 #include "output-json-template-rust.h"
 #include "output-json-rdp.h"
+#include "output-json-mysql.h"
 #include "output-lua.h"
 #include "output-json-dnp3.h"
 #include "output-json-metadata.h"
@@ -1163,4 +1164,6 @@ void OutputRegisterLoggers(void)
     JsonTemplateRustLogRegister();
     /* RDP JSON logger. */
     JsonRdpLogRegister();
+    /* MySQL JSON logger. */
+    JsonMysqlLogRegister();
 }
