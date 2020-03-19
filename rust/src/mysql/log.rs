@@ -156,7 +156,7 @@ pub extern "C" fn rs_mysql_log_json(_state: &mut MysqlState, tx: &mut MysqlTrans
                     js.set("columns", jsa);
                     js.set("eof", jseof);
                 },
-                MysqlResponsePacket::ResultSet {ref header, n_cols, ref columns} => {
+                MysqlResponsePacket::ResultSet {ref header, n_cols, ref columns, ref eof, ref rows} => {
                     js.set_integer("pkt_len", header.pkt_len as u64);
                     js.set_integer("pkt_num", header.pkt_num as u64);
                     js.set_integer("num_columns", n_cols as u64);

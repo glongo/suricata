@@ -18,6 +18,7 @@
 // written by Giuseppe Longo <giuseppe@glongo.it>
 
 use nom::*;
+use nom::multi::many_m_n;
 use nom::{crlf, IResult};
 use std;
 
@@ -96,7 +97,14 @@ pub enum MysqlResponsePacket {
     Unknown,
     Ok {header: MysqlPacket, rows: u8, flags: u16, warnings: u16},
     FieldsList {columns: Vec<MysqlColumnDefinition>, eof: MysqlEofPacket},
-    ResultSet {header: MysqlPacket, n_cols: u8, columns: Vec<MysqlColumnDefinition>}
+    ResultSet {
+        header: MysqlPacket,
+        n_cols: u8,
+        columns: Vec<MysqlColumnDefinition>,
+        eof: MysqlEofPacket,
+        //rows: Vec<MysqlResultSetRow>,
+        rows: Vec<u8>,
+    }
 }
 
 #[derive(Debug)]
@@ -113,6 +121,12 @@ pub struct MysqlColumnDefinition {
     pub field_type: u8,
     pub flags: u16,
     pub decimals: u8
+}
+
+#[derive(Debug)]
+pub struct MysqlResultSetRow {
+    pub header: MysqlPacket,
+    pub text: Vec<String>
 }
 
 #[derive(Debug)]
@@ -243,11 +257,11 @@ named!(pub mysql_parse_request<&[u8], MysqlRequest>,
 //}
 
 named_args!(pub mysql_parse_response(code: u8)<MysqlResponse>,
-    dbg_dmp!(switch!(value!(code),
+    switch!(value!(code),
         0x03 => alt!(call!(mysql_parse_response_ok) | call!(mysql_parse_resultset)) |
         0x04 => alt!(call!(mysql_parse_response_ok) | call!(mysql_parse_response_field_list)) |
         _ => value!(MysqlResponse {item: MysqlResponsePacket::Unknown})
-    ))
+    )
 );
 
 //fn mysql_parse_init_db_cmd(input: &[u8]) -> IResult<&[u8], MysqlCommand> {
@@ -426,23 +440,188 @@ named!(mysql_parse_column_definition<&[u8], MysqlColumnDefinition>,
     ))
 );
 
-named!(mysql_parse_resultset<&[u8], MysqlResponse>,
-    do_parse!(
+named!(mysql_parse_column_definition2<&[u8], MysqlColumnDefinition>,
+    dbg_dmp!(do_parse!(
         header: mysql_parse_packet_header >>
-        n_cols: be_u8 >>
-        columns: many_m_n!(1, n_cols as usize, call!(mysql_parse_column_definition))
+        _len: be_u8 >>
+        catalog: take_str!(_len) >>
+        _len: be_u8 >>
+        schema: map!(take_str!(_len), |s: &str| s.into()) >>
+        _len: be_u8 >>
+        table: map!(take_str!(_len), |s: &str| s.into()) >>
+        _len: be_u8 >>
+        orig_table: map!(take_str!(_len), |s: &str| s.into()) >>
+        _len: be_u8 >>
+        name: map!(take_str!(_len), |s: &str| s.into()) >>
+        _len: be_u8 >>
+        orig_name: map!(take_str!(_len), |s: &str| s.into()) >>
+        nil: take!(1) >>
+        character_set: be_u16 >>
+        column_length: le_u32 >>
+        field_type: be_u8 >>
+        flags: be_u16 >>
+        decimals: be_u8 >>
+        //filler: take!(5)
+        filler: take!(2)
         >>
         (
-            MysqlResponse {
-                item: MysqlResponsePacket::ResultSet {
-                    header,
-                    n_cols,
-                    columns
-                }
+            MysqlColumnDefinition {
+                header,
+                catalog: "def".to_string(),
+                schema,
+                table,
+                orig_table,
+                name,
+                orig_name,
+                character_set,
+                column_length,
+                field_type,
+                flags,
+                decimals
+            }
+        )
+
+    ))
+);
+
+//fn mysql_parse_field_list_cmd(input: &[u8]) -> IResult<&[u8], MysqlCommand> {
+//    do_parse! {
+//        input,
+//        table: map!(take_till!(|ch| ch == 0x00), |s: &[u8]| String::from_utf8(s.to_vec()).unwrap())
+//        >>
+//        (MysqlCommand::FieldList { table })
+//    }
+//}
+
+//fn mysql_parse_resultset(input: &[u8]) -> IResult<&[u8], MysqlResponse> {
+//    do_parse! {
+//        input,
+//        header: mysql_parse_packet_header >>
+//        n_cols: be_u8 >>
+//        columns: many_m_n!(1, n_cols as usize, call!(mysql_parse_column_definition2)) >>
+//        eof: mysql_parse_eof_packet >>
+////        rows: fold_many1!(call!(mysql_parse_resultset_row(input, n_cols)), Vec::new(), |mut rows: Vec<_>, r| {
+////            rows.push(r);
+////            rows
+////        })
+//        rows: fold_many1!(mysql_parse_resultset_row(input, n_cols), Vec::new(), |mut acc: Vec<u8>, item| {
+//            acc.push(1);
+//            acc
+//            })
+//        >>
+//        (
+//            MysqlResponse {
+//                item: MysqlResponsePacket::ResultSet {
+//                    header,
+//                    n_cols,
+//                    columns,
+//                    eof,
+//                    rows
+//                }
+//            }
+//        )
+//    }
+//}
+
+//fn mysql_parse_resultset_row(input: &[u8], n_cols: u8) -> IResult<&[u8], MysqlResultSetRow> {
+//    do_parse! {
+//        input,
+//        header: mysql_parse_packet_header >>
+//        len: be_u8 >>
+//        text: many_m_n!(1, n_cols as usize,
+//                do_parse!(
+//                    len: be_u8 >>
+//                    text: map!(take_str!(len), |s: &str| s.into())
+//                    >>
+//                    (text)
+//                )
+//              )
+//        >>
+//        (
+//            MysqlResultSetRow {
+//                header,
+//                text
+//            }
+//        )
+//    }
+//}
+
+//named!(mysql_parse_resultset<&[u8], MysqlResponse>,
+//    dbg_dmp!(do_parse!(
+//        header: mysql_parse_packet_header >>
+//        n_cols: be_u8 >>
+//        columns: many_m_n!(1, n_cols as usize, call!(mysql_parse_column_definition2)) >>
+//        eof: mysql_parse_eof_packet >>
+//        rows: fold_many1!(call!(mysql_parse_resultset_row(n_cols)), Vec::new(), |mut rows: Vec<_>, r| {
+//            rows.push(r);
+//            rows
+//        })
+//        >>
+//        (
+//            MysqlResponse {
+//                item: MysqlResponsePacket::ResultSet {
+//                    header,
+//                    n_cols,
+//                    columns,
+//                    eof,
+//                    rows
+//                }
+//            }
+//        )
+//    ))
+//);
+
+fn mysql_parse_resultset(input: &[u8]) -> IResult<&[u8], MysqlResponse> {
+    let (input, header) = mysql_parse_packet_header(input)?;
+    let (input, n_cols) = be_u8(input)?;
+    let (input, columns) = many_m_n!(1, n_cols as usize, call!(mysql_parse_column_definition2))?;
+
+}
+
+//named!(mysql_parse_resultset_row<&[u8], MysqlResultSetRow>,
+//    do_parse!(
+//        header: mysql_parse_packet_header >>
+//        len: be_u8 >>
+//        text: many_m_n!(1, 2 as usize,
+//                do_parse!(
+//                    len: be_u8 >>
+//                    text: map!(take_str!(len), |s: &str| s.into())
+//                    >>
+//                    (text)
+//                )
+//              )
+//        >>
+//        (
+//            MysqlResultSetRow {
+//                header,
+//                text
+//            }
+//        )
+//    )
+//);
+
+named_args!(mysql_parse_resultset_row(n_cols: u8)<MysqlResultSetRow>,
+    do_parse!(
+        header: mysql_parse_packet_header >>
+        len: be_u8 >>
+        text: many_m_n!(1, n_cols as usize,
+                do_parse!(
+                    len: be_u8 >>
+                    text: map!(take_str!(len), |s: &str| s.into())
+                    >>
+                    (text)
+                )
+              )
+        >>
+        (
+            MysqlResultSetRow {
+                header,
+                text
             }
         )
     )
 );
+
 
 #[cfg(test)]
 mod tests {
@@ -494,6 +673,49 @@ mod tests {
                     }
                     _ => {
                         assert!(false);
+                    }
+                }
+            }
+            _ => {
+                assert!(false);
+            }
+        }
+    }
+
+    #[test]
+    fn test_resultset_response() {
+        let buf: &[u8] = &[
+            0x01, 0x00, 0x00, 0x01, 0x01, 0x27, 0x00, 0x00, 0x02, 0x03, 0x64, 0x65,
+            0x66, 0x00, 0x00, 0x00, 0x11, 0x40, 0x40, 0x76, 0x65, 0x72, 0x73, 0x69,
+            0x6f, 0x6e, 0x5f, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x00, 0x0c,
+            0x21, 0x00, 0x4b, 0x00, 0x00, 0x00, 0xfd, 0x01, 0x00, 0x1f, 0x00, 0x00,
+            0x05, 0x00, 0x00, 0x03, 0xfe, 0x00, 0x00, 0x02, 0x00,
+            0x1a, 0x00, 0x00, 0x04, 0x19, 0x47, 0x65, 0x6e, 0x74, 0x6f, 0x6f, 0x20,
+            0x4c, 0x69, 0x6e, 0x75, 0x78, 0x20, 0x6d, 0x79, 0x73, 0x71, 0x6c, 0x2d,
+            0x35, 0x2e, 0x30, 0x2e, 0x35, 0x34
+        ];
+
+        match mysql_parse_response(buf, 0x03) {
+            Ok((_, resp)) => {
+                match resp.item {
+                    MysqlResponsePacket::ResultSet {ref header, n_cols, ref columns, ref eof, ref rows} => {
+                        assert_eq!(header.pkt_len, 1);
+                        assert_eq!(header.pkt_num, 1);
+                        assert_eq!(n_cols, 1);
+                        assert_eq!(columns[0].header.pkt_len, 39);
+                        assert_eq!(columns[0].header.pkt_num, 2);
+                        assert_eq!(columns[0].catalog, "def");
+                        assert_eq!(columns[0].decimals, 31);
+                        assert_eq!(eof.header.pkt_len, 5);
+                        assert_eq!(eof.header.pkt_num, 3);
+                        assert_eq!(eof.warnings, 0);
+                        assert_eq!(eof.status_flags, 2);
+                        assert_eq!(rows[0].header.pkt_len, 26);
+                        assert_eq!(rows[0].header.pkt_num, 4);
+                        assert_eq!(rows[0].text, "Gentoo Linux mysql-5.0.54");
+                    }
+                    _ => {
+                        assert!(false)
                     }
                 }
             }
