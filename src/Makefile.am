@@ -263,6 +263,7 @@ detect-sip-stat-code.c detect-sip-stat-code.h \
 detect-sip-stat-msg.c detect-sip-stat-msg.h \
 detect-sip-request-line.c detect-sip-request-line.h \
 detect-sip-response-line.c detect-sip-response-line.h \
+detect-sip-from.c detect-sip-from.h \
 detect-rfb-secresult.c detect-rfb-secresult.h \
 detect-rfb-sectype.c detect-rfb-sectype.h \
 detect-rfb-name.c detect-rfb-name.h \

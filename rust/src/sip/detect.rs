@@ -181,3 +181,26 @@ pub unsafe extern "C" fn rs_sip_tx_get_response_line(
 
     return 0;
 }
+
+#[no_mangle]
+pub unsafe extern "C" fn rs_sip_tx_get_from_header(
+    tx: &mut SIPTransaction,
+    buffer: *mut *const u8,
+    buffer_len: *mut u32,
+) -> u8 {
+    if let Some(ref r) = tx.request {
+        match r.headers.get(&String::from("From")) {
+            Some(ref from) => {
+                *buffer = from.as_ptr();
+                *buffer_len = from.len() as u32;
+                return 1;
+            }
+            _ => {}
+        }
+    }
+
+    *buffer = ptr::null();
+    *buffer_len = 0;
+
+    return 0;
+}
