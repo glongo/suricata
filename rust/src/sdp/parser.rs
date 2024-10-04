@@ -40,13 +40,13 @@ use std::str::FromStr;
 #[derive(Debug)]
 pub struct SdpMessage {
     pub version: u32,
-    pub origin: OriginField,
+    pub origin: String,
     pub session_name: String,
     pub session_info: Option<String>,
     pub uri: Option<String>,
     pub email: Option<String>,
     pub phone_number: Option<String>,
-    pub connection_data: Option<ConnectionData>,
+    pub connection_data: Option<String>,
     pub bandwidths: Option<Vec<String>>,
     pub time: String,
     pub repeat_time: Option<String>,
@@ -78,12 +78,8 @@ pub struct ConnectionData {
 #[derive(Debug)]
 pub struct MediaDescription {
     pub media: String,
-    pub port: u16,
-    pub number_of_ports: Option<u16>,
-    pub proto: String,
-    pub fmt: Vec<String>,
     pub session_info: Option<String>,
-    pub connection_data: Option<ConnectionData>,
+    pub connection_data: Option<String>,
     pub bandwidths: Option<Vec<String>>,
     pub encryption_key: Option<String>,
     pub attributes: Option<Vec<String>>,
@@ -208,7 +204,7 @@ fn parse_version_line(i: &[u8]) -> IResult<&[u8], u32> {
     Ok((i, 0))
 }
 
-fn parse_origin_line(i: &[u8]) -> IResult<&[u8], OriginField> {
+fn parse_origin_line(i: &[u8]) -> IResult<&[u8], String> {
     let (i, _) = tag("o=")(i)?;
     let (i, username) = map_res(take_while(is_token_char), std::str::from_utf8)(i)?;
     let (i, _) = space1(i)?;
@@ -223,17 +219,12 @@ fn parse_origin_line(i: &[u8]) -> IResult<&[u8], OriginField> {
     let (i, unicast_address) = map_res(take_till(is_line_ending), std::str::from_utf8)(i)?;
     let (i, _) = line_ending(i)?;
 
-    Ok((
-        i,
-        OriginField {
-            username: username.to_string(),
-            sess_id: sess_id.to_string(),
-            sess_version: sess_version.to_string(),
-            nettype: nettype.to_string(),
-            addrtype: addrtype.to_string(),
-            unicast_address: unicast_address.to_string(),
-        },
-    ))
+    let origin_line = format!(
+        "{} {} {} {} {} {}",
+        username, sess_id, sess_version, nettype, addrtype, unicast_address
+    );
+
+    Ok((i, origin_line))
 }
 
 fn parse_session_name(i: &[u8]) -> IResult<&[u8], String> {
@@ -257,7 +248,7 @@ fn parse_uri(i: &[u8]) -> IResult<&[u8], String> {
     Ok((i, uri.to_string()))
 }
 
-fn parse_connection_data(i: &[u8]) -> IResult<&[u8], ConnectionData> {
+fn parse_connection_data(i: &[u8]) -> IResult<&[u8], String> {
     let (i, _) = tag("c=")(i)?;
     let (i, nettype) = map_res(take_while(is_alphabetic), std::str::from_utf8)(i)?;
     let (i, _) = space1(i)?;
@@ -286,16 +277,20 @@ fn parse_connection_data(i: &[u8]) -> IResult<&[u8], ConnectionData> {
         _ => (None, None),
     };
 
-    Ok((
-        i,
-        ConnectionData {
-            nettype: nettype.to_string(),
-            addrtype: addrtype.to_string(),
-            connection_address,
-            ttl,
-            number_of_addresses,
-        },
-    ))
+    let mut connection_data = format!(
+        "{} {} {}",
+        &nettype,
+        &addrtype,
+        &connection_address.to_string()
+    );
+    if let Some(ttl) = ttl {
+        connection_data = format!("{}/{}", connection_data, ttl);
+    }
+    if let Some(num_addrs) = number_of_addresses {
+        connection_data = format!("{}/{}", connection_data, num_addrs);
+    }
+
+    Ok((i, connection_data))
 }
 
 fn parse_email(i: &[u8]) -> IResult<&[u8], String> {
@@ -464,23 +459,29 @@ fn parse_media_description(i: &[u8]) -> IResult<&[u8], MediaDescription> {
     let (i, encryption_key) = opt(parse_encryption_key)(i)?;
     let (i, attributes) = opt(parse_attributes)(i)?;
 
-    let port = match port.parse::<u16>() {
+    let port: u16 = match port.parse::<u16>() {
         Ok(p) => p,
-        Err(_) => return Err(Err::Error(make_error(i, ErrorKind::HexDigit)))
+        Err(_) => return Err(Err::Error(make_error(i, ErrorKind::HexDigit))),
     };
-    let number_of_ports = match number_of_ports {
+    let number_of_ports: Option<u16> = match number_of_ports {
         Some(num_str) => num_str.parse().ok(),
         None => None,
     };
 
+    let port = if let Some(num_ports) = number_of_ports {
+        format!("{}/{}", port, num_ports)
+    } else {
+        format!("{}", port)
+    };
+    let mut media_str = format!("{} {} {}", &media, &port, &proto);
+    let fmt: Vec<String> = fmt.into_iter().map(String::from).collect();
+    for f in &fmt {
+        media_str = format!("{} {}", media_str, f);
+    }
     Ok((
         i,
         MediaDescription {
-            media,
-            port,
-            number_of_ports,
-            proto,
-            fmt: fmt.into_iter().map(String::from).collect(),
+            media: media_str,
             session_info,
             connection_data,
             bandwidths,
