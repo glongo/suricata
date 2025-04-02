@@ -2127,8 +2127,8 @@ typedef struct Thread_ {
 
     SC_ATOMIC_DECLARE(SCTime_t, pktts); /**< current packet time of this thread
                                          *   (offline mode) */
-    SCTime_t sys_sec_stamp; /**< timestamp in real system
-                             *   time when the pktts was last updated. */
+    SCTime_t sys_sec_stamp;             /**< timestamp in real system
+                                         *   time when the pktts was last updated. */
     SCSpinlock spin;
 } __attribute__((aligned(CLS))) Thread;
 
